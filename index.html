@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Workout Generator</title>
+<style>
+* {margin:0;padding:0;box-sizing:border-box;}
+body {font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;min-height:100vh;background:linear-gradient(135deg,#1e293b 0%,#581c87 50%,#1e293b 100%);padding:20px;}
+.container {max-width:800px;margin:0 auto;}
+.header {text-align:center;padding:40px 0;color:white;}
+.header h1 {font-size:2.5rem;margin-bottom:10px;}
+.header p {color:#c084fc;font-size:1.1rem;}
+.card {background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);border-radius:20px;padding:30px;margin-bottom:30px;border:1px solid rgba(255,255,255,0.2);box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+.card-header {display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+.card-header h2 {color:white;font-size:1.8rem;}
+.toggle-btn {background:none;border:none;color:#c084fc;cursor:pointer;font-size:1rem;font-weight:500;transition:color 0.3s;}
+.toggle-btn:hover {color:white;}
+.form-group {margin-bottom:20px;}
+label {display:block;color:#c084fc;margin-bottom:8px;font-size:0.9rem;font-weight:500;}
+input,select {width:100%;padding:12px 16px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.2);color:white;font-size:1rem;transition:all 0.3s;}
+input::placeholder {color:rgba(192,132,252,0.5);}
+input:focus,select:focus {outline:none;border-color:#a855f7;box-shadow:0 0 0 3px rgba(168,85,247,0.3);}
+select option {background:#1e293b;color:white;}
+.generate-btn {width:100%;padding:16px;margin-top:20px;background:linear-gradient(135deg,#a855f7 0%,#ec4899 100%);color:white;border:none;border-radius:10px;font-size:1.1rem;font-weight:bold;cursor:pointer;transition:transform 0.2s;}
+.generate-btn:hover {transform:scale(1.02);}
+.hidden {display:none;}
+.workout-type-badge {display:inline-block;padding:8px 16px;border-radius:20px;font-size:0.9rem;font-weight:bold;color:white;margin-bottom:20px;}
+.workout-section {margin-bottom:30px;}
+.workout-section h3 {color:#c084fc;font-size:1.2rem;margin-bottom:12px;}
+.workout-item {background:rgba(255,255,255,0.05);padding:12px;border-radius:10px;color:white;margin-bottom:10px;display:flex;align-items:flex-start;}
+.exercise-number {background:#a855f7;color:white;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:bold;margin-right:12px;flex-shrink:0;}
+.rest-time {color:#c084fc;font-size:0.9rem;font-style:italic;margin-top:12px;}
+.workout-title {color:white;font-size:1.5rem;font-weight:bold;margin-bottom:20px;}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+<h1>Workout Generator</h1>
+<p>Your personalized fitness routine</p>
+</div>
+
+<div class="card">
+<div class="card-header">
+<h2>⚡ Personalize</h2>
+<button class="toggle-btn" onclick="togglePersonalize()">▼ Show</button>
+</div>
+
+<div id="personalizeForm" class="hidden">
+<div class="form-group">
+<label>Age (Optional)</label>
+<input type="number" id="age" placeholder="Enter your age">
+</div>
+
+<div class="form-group">
+<label>Fitness Level</label>
+<select id="level">
+<option value="beginner">Beginner</option>
+<option value="intermediate">Intermediate</option>
+<option value="advanced">Advanced</option>
+</select>
+</div>
+
+<div class="form-group">
+<label>Duration (minutes)</label>
+<select id="duration">
+<option value="20">20 minutes</option>
+<option value="30" selected>30 minutes</option>
+<option value="45">45 minutes</option>
+<option value="60">60 minutes</option>
+</select>
+</div>
+
+<div class="form-group">
+<label>Location</label>
+<select id="location">
+<option value="gym" selected>Gym</option>
+<option value="home">Home</option>
+</select>
+</div>
+
+<div class="form-group">
+<label>Equipment</label>
+<select id="equipment">
+<option value="yes" selected>With Equipment</option>
+<option value="no">No Equipment</option>
+</select>
+</div>
+
+<div class="form-group">
+<label>Pace</label>
+<select id="pace">
+<option value="slow">Slow</option>
+<option value="normal" selected>Normal</option>
+<option value="fast">Fast</option>
+</select>
+</div>
+</div>
+
+<button class="generate-btn" onclick="generateWorkout()">Generate Workout</button>
+</div>
+
+<div id="workoutResult" class="hidden"></div>
+</div>
+
+<script>
+const workoutDatabase = {
+beginner:{gym:{yes:{warmup:['5 min treadmill walk','5 min elliptical','Light stretching'],exercises:['Leg Press - 3x12','Chest Press - 3x10','Lat Pulldown - 3x10','Shoulder Press - 3x10','Leg Curl - 3x12','Cable Bicep Curl - 3x12','Cable Tricep Ext - 3x12','Seated Row - 3x10'],cooldown:['5 min walk','Static stretching']},no:{warmup:['Jumping jacks - 2 min','Arm circles','Leg swings'],exercises:['Bodyweight Squats - 3x15','Push-ups (knees) - 3x10','Walking Lunges - 3x10','Plank - 3x30 sec','Glute Bridges - 3x15','Mountain Climbers - 3x20'],cooldown:['Walk in place - 3 min','Stretching']}},home:{yes:{warmup:['Jumping jacks - 2 min','Dynamic stretching'],exercises:['Dumbbell Goblet Squats - 3x12','Dumbbell Chest Press - 3x10','Dumbbell Rows - 3x10','Dumbbell Shoulder Press - 3x10','Dumbbell Lunges - 3x10','Dumbbell Bicep Curls - 3x12'],cooldown:['Walking - 3 min','Stretching']},no:{warmup:['High knees - 1 min','Leg kicks - 1 min','Arm swings'],exercises:['Bodyweight Squats - 3x15','Push-ups - 3x10','Reverse Lunges - 3x12','Plank - 3x30 sec','Glute Bridges - 3x15','Superman Hold - 3x20 sec'],cooldown:['March in place - 3 min','Full body stretch']}}},
+intermediate:{gym:{yes:{warmup:['5 min rowing','Dynamic stretches'],exercises:['Barbell Squats - 4x10','Bench Press - 4x8','Deadlifts - 4x8','Pull-ups - 3x8','Overhead Press - 3x10','Romanian Deadlifts - 3x10','Dumbbell Rows - 3x10','Dips - 3x10','Barbell Curls - 3x12'],cooldown:['5 min bike','Foam rolling']},no:{warmup:['Burpees - 2 min','Dynamic mobility'],exercises:['Jump Squats - 4x12','Diamond Push-ups - 4x12','Bulgarian Split Squats - 3x12','Pike Push-ups - 3x10','Jump Lunges - 3x10','Plank to Push-up - 3x10','Side Plank - 3x45 sec'],cooldown:['Light cardio - 5 min','Stretching']}},home:{yes:{warmup:['Jump rope - 3 min','Mobility work'],exercises:['Dumbbell Squats - 4x12','Dumbbell Bench Press - 4x10','Dumbbell Romanian Deadlifts - 4x10','Dumbbell Rows - 4x10','Dumbbell Shoulder Press - 3x12','Dumbbell Lunges - 3x12','Dumbbell Curls - 3x12','Dumbbell Tricep Ext - 3x12'],cooldown:['Walk - 5 min','Stretch routine']},no:{warmup:['High knees - 2 min','Inchworms'],exercises:['Jump Squats - 4x15','Push-ups - 4x15','Single Leg Deadlifts - 3x12','Pike Push-ups - 3x12','Jump Lunges - 3x12','Plank Jacks - 3x20','Bicycle Crunches - 3x20'],cooldown:['Cool down walk - 5 min','Full stretch']}}},
+advanced:{gym:{yes:{warmup:['10 min cardio','Dynamic warm-up'],exercises:['Barbell Back Squats - 5x5','Bench Press - 5x5','Deadlifts - 5x5','Weighted Pull-ups - 4x8','Barbell Overhead Press - 4x8','Front Squats - 3x10','Weighted Dips - 3x10','Barbell Rows - 4x8','Leg Press - 3x15'],cooldown:['10 min light cardio','Mobility work']},no:{warmup:['HIIT warm-up - 5 min','Dynamic stretches'],exercises:['Pistol Squats - 4x8','Handstand Push-ups - 4x8','One-Arm Push-ups - 4x6','Muscle-ups - 4x5','Plyometric Lunges - 4x12','L-Sit Hold - 4x30 sec','Dragon Flags - 3x8'],cooldown:['Active recovery - 10 min','Deep stretching']}},home:{yes:{warmup:['Jump rope - 5 min','Band warm-up'],exercises:['Heavy Dumbbell Squats - 5x8','Dumbbell Bench Press - 5x8','Dumbbell Romanian Deadlifts - 5x8','Weighted Pull-ups - 4x8','Dumbbell Overhead Press - 4x10','Bulgarian Split Squats - 4x10','Dumbbell Rows - 4x10','Weighted Dips - 3x12'],cooldown:['Light movement - 10 min','Foam rolling']},no:{warmup:['Burpees - 3 min','Full body mobility'],exercises:['Pistol Squats - 5x10','Archer Push-ups - 4x10','Jump Squats - 4x15','Handstand Hold - 4x45 sec','Bulgarian Split Squat Jumps - 4x10','Planche Progression - 4 sets','V-Ups - 4x15'],cooldown:['Active cool down - 10 min','Stretch session']}}}
+};
+
+function togglePersonalize(){
+const form=document.getElementById('personalizeForm');
+const btn=document.querySelector('.toggle-btn');
+form.classList.contains('hidden') ? (form.classList.remove('hidden'),btn.textContent='▲ Hide') : (form.classList.add('hidden'),btn.textContent='▼ Show');
+}
+
+function generateWorkout(){
+let ageInput=document.getElementById('age').value;
+let age=ageInput ? parseInt(ageInput) : null;
+let level=document.getElementById('level').value;
+let duration=parseInt(document.getElementById('duration').value);
+let location=document.getElementById('location').value;
+let equipment=document.getElementById('equipment').value;
+let pace=document.getElementById('pace').value;
+
+// Age adjustments
+if(age!==null){
+if(age<14){level='beginner';pace='slow';}
+else if(age>=40&&age<60){pace='slow';}
+else if(age>=60){level='beginner';pace='slow';}
+}
+
+const workoutPlan=workoutDatabase[level][location][equipment];
+let exercises=[...workoutPlan.exercises];
+
+let numExercises;
+if(duration<=30) numExercises=Math.min(4,exercises.length);
+else if(duration<=45) numExercises=Math.min(6,exercises.length);
+else numExercises=exercises.length;
+
+if(age>=60) numExercises=Math.min(3,exercises.length);
+
+exercises=exercises.sort(()=>Math.random()-0.5).slice(0,numExercises);
+
+let restTime=pace==='fast'?'30-45 seconds':pace==='normal'?'60 seconds':'90-120 seconds';
+
+let workoutType,workoutColor;
+if(equipment==='no'&&pace==='fast'){workoutType='HIIT Cardio';workoutColor='linear-gradient(135deg,#ef4444 0%,#f97316 100%)';}
+else if(equipment==='no'&&location==='home'&&pace==='slow'){workoutType='Yoga/Pilates';workoutColor='linear-gradient(135deg,#10b981 0%,#14b8a6 100%)';}
+else if(location==='gym'&&equipment==='yes'){workoutType='Strength Training';workoutColor='linear-gradient(135deg,#3b82f6 0%,#6366f1 100%)';}
+else if(pace==='fast'){workoutType='Circuit Training';workoutColor='linear-gradient(135deg,#eab308 0%,#f97316 100%)';}
+else if(equipment==='no'){workoutType='Bodyweight/Calisthenics';workoutColor='linear-gradient(135deg,#a855f7 0%,#ec4899 100%)';}
+else{workoutType='Functional Fitness';workoutColor='linear-gradient(135deg,#06b6d4 0%,#3b82f6 100%)';}
+
+if(age!==null&&(age<14||age>=60)){workoutType='Easy/Beginner';workoutColor='linear-gradient(135deg,#fbbf24 0%,#fde68a 100%)';}
+
+const warmup=workoutPlan.warmup[Math.floor(Math.random()*workoutPlan.warmup.length)];
+const cooldown=workoutPlan.cooldown[Math.floor(Math.random()*workoutPlan.cooldown.length)];
+
+let html=`
+<div class="card">
+<div class="workout-type-badge" style="background:${workoutColor}">${workoutType}</div>
+<div class="workout-title">🕐 Your ${duration}-Minute Workout</div>
+
+<div class="workout-section"><h3>Warm-up</h3><div class="workout-item">${warmup}</div></div>
+
+<div class="workout-section"><h3>Main Workout</h3>
+${exercises.map((ex,i)=>`<div class="workout-item"><span class="exercise-number">${i+1}</span><span>${ex}</span></div>`).join('')}
+<div class="rest-time">Rest between sets: ${restTime}</div></div>
+
+<div class="workout-section"><h3>Cool-down</h3><div class="workout-item">${cooldown}</div></div>
+</div>`;
+
+const resultDiv=document.getElementById('workoutResult');
+resultDiv.innerHTML=html;
+resultDiv.classList.remove('hidden');
+resultDiv.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+</script>
+</body>
+</html>
